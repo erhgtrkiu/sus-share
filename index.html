@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SusWorld File Share</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --container-bg: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary-color: #00d2ff;
+            --secondary-color: #0066ff;
+            --accent-color: #ff007f;
+            --text-color: #f5f6fa;
+            --text-muted: #a0a5b5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 210, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 127, 0.05) 0%, transparent 40%);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(0, 210, 255, 0.02);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.1);
+        }
+
+        .drop-zone-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .drop-zone:hover .drop-zone-icon {
+            transform: translateY(-5px);
+        }
+
+        .drop-zone-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .drop-zone-subtext {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .btn-upload {
+            display: none;
+            width: 100%;
+            margin-top: 25px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 102, 255, 0.4);
+        }
+
+        .selected-file-info {
+            display: none;
+            margin-top: 20px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            text-align: left;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .selected-file-name {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 80%;
+        }
+
+        .selected-file-size {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 25px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 3px;
+            transition: width 0.1s ease;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .status-message {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            display: none;
+        }
+
+        .status-success {
+            background: rgba(46, 213, 115, 0.1);
+            border: 1px solid rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+        }
+
+        .status-error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>SusWorld Share</h1>
+    <div class="subtitle" id="welcome-text">Загрузка медиафайлов на игровой сервер</div>
+
+    <div class="drop-zone" id="drop-zone">
+        <span class="drop-zone-icon">📁</span>
+        <div class="drop-zone-text">Выберите файл или перетащите сюда</div>
+        <div class="drop-zone-subtext">Изображения (PNG, JPG) или Музыка (MP3, WAV, MIDI)</div>
+        <input type="file" id="file-input" accept="image/png, image/jpeg, image/jpg, audio/mpeg, audio/mp3, audio/wav, audio/x-wav, audio/midi, audio/mid">
+    </div>
+
+    <div class="selected-file-info" id="file-info">
+        <div class="selected-file-name" id="file-name">filename.png</div>
+        <div class="selected-file-size" id="file-size">0 KB</div>
+    </div>
+
+    <button class="btn-upload" id="btn-upload">Поделиться в Minecraft</button>
+
+    <div class="progress-container" id="progress-container">
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Загрузка: 0%</div>
+    </div>
+
+    <div class="status-message" id="status-message"></div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const apiUrl = urlParams.get('api');
+
+    if (!token || !apiUrl) {
+        showStatus('Ошибка: отсутствуют параметры подключения! Пожалуйста, используйте ссылку, полученную в игре по команде /upload.', 'error');
+        document.getElementById('drop-zone').style.pointerEvents = 'none';
+        document.getElementById('drop-zone').style.opacity = '0.5';
+    }
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const btnUpload = document.getElementById('btn-upload');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const statusMessage = document.getElementById('status-message');
+
+    let selectedFile = null;
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    ['dragleave', 'dragend'].forEach(type => {
+        dropZone.addEventListener(type, () => {
+            dropZone.classList.remove('drag-over');
+        });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+            handleFileSelection(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (fileInput.files.length) {
+            handleFileSelection(fileInput.files[0]);
+        }
+    });
+
+    function handleFileSelection(file) {
+        const allowedExtensions = ['png', 'jpg', 'jpeg', 'mp3', 'wav', 'mid', 'midi'];
+        const ext = file.name.split('.').pop().toLowerCase();
+
+        if (!allowedExtensions.includes(ext)) {
+            showStatus('Ошибка: Недопустимый формат файла! Допускаются только PNG, JPG, MP3, WAV и MIDI.', 'error');
+            resetSelection();
+            return;
+        }
+
+        selectedFile = file;
+        fileName.textContent = file.name;
+        fileSize.textContent = formatBytes(file.size);
+        
+        fileInfo.style.display = 'flex';
+        btnUpload.style.display = 'block';
+        statusMessage.style.display = 'none';
+    }
+
+    function resetSelection() {
+        selectedFile = null;
+        fileInfo.style.display = 'none';
+        btnUpload.style.display = 'none';
+    }
+
+    function formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    btnUpload.addEventListener('click', () => {
+        if (!selectedFile || !token || !apiUrl) return;
+
+        btnUpload.style.display = 'none';
+        progressContainer.style.display = 'block';
+        updateProgress(10, 'Чтение файла...');
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            updateProgress(30, 'Отправка на сервер...');
+            
+            const base64Data = event.target.result;
+            const payload = {
+                token: token,
+                filename: selectedFile.name,
+                data: base64Data
+            };
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', apiUrl, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 50) + 30;
+                    updateProgress(percent, 'Загрузка файла: ' + percent + '%');
+                }
+            };
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        updateProgress(100, 'Завершено!');
+                        setTimeout(() => {
+                            progressContainer.style.display = 'none';
+                            showStatus('🎉 Файл успешно загружен и опубликован в чате Minecraft!', 'success');
+                            resetSelection();
+                        }, 500);
+                    } else {
+                        progressContainer.style.display = 'none';
+                        btnUpload.style.display = 'block';
+                        let responseText = 'Произошла ошибка при загрузке.';
+                        try {
+                            const resp = JSON.parse(xhr.responseText);
+                            if (resp.message) responseText = resp.message;
+                        } catch(e) {}
+                        showStatus('❌ Ошибка: ' + responseText, 'error');
+                    }
+                }
+            };
+
+            xhr.send(JSON.stringify(payload));
+        };
+
+        reader.onerror = function() {
+            progressContainer.style.display = 'none';
+            btnUpload.style.display = 'block';
+            showStatus('Ошибка при чтении локального файла.', 'error');
+        };
+
+        reader.readAsDataURL(selectedFile);
+    });
+
+    function updateProgress(percent, text) {
+        progressFill.style.width = percent + '%';
+        progressText.textContent = text;
+    }
+
+    function showStatus(text, type) {
+        statusMessage.textContent = text;
+        statusMessage.style.display = 'block';
+        statusMessage.className = 'status-message ' + (type === 'success' ? 'status-success' : 'status-error');
+    }
+</script>
+
+</body>
+</html>
